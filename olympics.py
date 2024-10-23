@@ -57,9 +57,12 @@ def update_output(selected_countries):
             textposition='auto'  # Posiciona os textos automaticamente (dentro das barras)
         ))
 
+    # Criação do título dinâmico com todos os países selecionados
+    title = 'Comparação de Medalhas: ' + ' vs '.join(selected_countries)
+
     # Customizando o layout do gráfico
     fig.update_layout(
-        title=f'Comparação de Medalhas: {selected_countries[0]} vs {selected_countries[1]}',
+        title=title,
         xaxis_title='Tipo de Medalha',
         yaxis_title='Número de Medalhas',
         barmode='group',  # Gráfico de barras agrupadas
