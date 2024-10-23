@@ -14,7 +14,7 @@ print(df.head())
 app = Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("Olympic Countries Comparison"),
+    html.H1("Comparativo dos Países nas Olímpiadas de 2024"),
     dcc.Dropdown(
         id='country-dropdown',
         options=[{'label': country, 'value': country} for country in df['country_code'].unique()],
@@ -47,13 +47,13 @@ def update_output(selected_countries):
         country_data = filtered_df[filtered_df['country_code'] == country]
 
         fig.add_trace(go.Bar(
-            x=['Gold', 'Silver', 'Bronze'],
+            x=['Ouro', 'Prata', 'Bronze'],
             y=[country_data['gold'].values[0], country_data['silver'].values[0], country_data['bronze'].values[0]],
             name=country,
             marker_color=colors[i % len(colors)],  # Aplica as cores de maneira cíclica
             text=[f"{country}: {int(country_data['gold'].values[0])}", 
-                  f"{country}: {int(country_data['gold'].values[0])}", 
-                  f"{country}: {int(country_data['gold'].values[0])}"],  # Adiciona os valores como texto nas barras
+                  f"{country}: {int(country_data['silver'].values[0])}", 
+                  f"{country}: {int(country_data['bronze'].values[0])}"],  # Adiciona os valores como texto nas barras
             textposition='auto'  # Posiciona os textos automaticamente (dentro das barras)
         ))
 
