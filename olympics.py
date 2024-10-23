@@ -1,9 +1,9 @@
 import kagglehub
 import pandas as pd
 from dash import Dash, html, dcc, Input, Output
-import plotly.express as px
+import plotly.graph_objects as go
 
-# Download latest version
+# Download the dataset
 path = kagglehub.dataset_download("mohamedyosef101/2024-olympics-medals-and-economic-status")
 
 print("Path to dataset files:", path)
@@ -11,46 +11,73 @@ df = pd.read_csv(path + "/olympics-economics.csv")
 print(df.head())
 
 # Initialize the app
-app = Dash()
+app = Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("Olympic Countries Dataset"),
+    html.H1("Olympic Countries Comparison"),
     dcc.Dropdown(
         id='country-dropdown',
-        options=[{'label': country, 'value': country} for country in df['country_code']],
-        value='USA',  # Default value
-        multi=False
+        options=[{'label': country, 'value': country} for country in df['country_code'].unique()],
+        value=['USA', 'CHN'],  # Default values
+        multi=True  # Allow selecting multiple countries
     ),
     dcc.Graph(id='medals-bar-chart'),
     html.Div(id='country-details')
 ])
 
 @app.callback(
-    Output('medals-bar-chart', 'figure'),
-    Output('country-details', 'children'),
-    Input('country-dropdown', 'value')
+    [Output('medals-bar-chart', 'figure'),
+     Output('country-details', 'children')],
+    [Input('country-dropdown', 'value')]
 )
-def update_output(selected_country):
-    # Filter the DataFrame for the selected country
-    filtered_df = df[df['country_code'] == selected_country]
+def update_output(selected_countries):
+    if len(selected_countries) < 2:
+        return {}, "Por favor, selecione dois países para comparar."
 
-    # Create a bar chart for the selected country
-    fig = px.bar(filtered_df, x=['gold', 'silver', 'bronze'], 
-                  y='country_code', 
-                  title=f'Medals won by {selected_country}',
-                  labels={'x': 'Number of Medals', 'y': 'Country'},
-                  color_discrete_sequence=['gold', 'silver', 'brown'])
+    # Filter the DataFrame for the selected countries
+    filtered_df = df[df['country_code'].isin(selected_countries)]
 
-    # Create a summary of the selected country
-    details = html.Div([
-        html.P(f"Country Code: {filtered_df['country_code'].values[0]}"),
-        html.P(f"Gold Medals: {filtered_df['gold'].values[0]}"),
-        html.P(f"Silver Medals: {filtered_df['silver'].values[0]}"),
-        html.P(f"Bronze Medals: {filtered_df['bronze'].values[0]}"),
-        html.P(f"Total Medals: {filtered_df['total'].values[0]}"),
-        html.P(f"GDP: {filtered_df['gdp'].values[0]} (Year: {filtered_df['gdp_year'].values[0]})"),
-        html.P(f"Population: {filtered_df['population'].values[0]}")
-    ])
+    # Create a bar chart using graph_objects
+    fig = go.Figure()
+
+    # Cores específicas para cada país
+    colors = ['blue', 'red']  # Exemplo de cores: USA azul, CHN vermelho
+    # Adicionar barras para cada país e tipo de medalha com valores
+    for i, country in enumerate(selected_countries):
+        country_data = filtered_df[filtered_df['country_code'] == country]
+
+        fig.add_trace(go.Bar(
+            x=['Gold', 'Silver', 'Bronze'],
+            y=[country_data['gold'].values[0], country_data['silver'].values[0], country_data['bronze'].values[0]],
+            name=country,
+            marker_color=colors[i % len(colors)],  # Aplica as cores de maneira cíclica
+            text=[country_data['gold'].values[0], country_data['silver'].values[0], country_data['bronze'].values[0]],  # Adiciona os valores como texto nas barras
+            textposition='auto'  # Posiciona os textos automaticamente (dentro das barras)
+        ))
+
+    # Customizando o layout do gráfico
+    fig.update_layout(
+        title=f'Comparação de Medalhas: {selected_countries[0]} vs {selected_countries[1]}',
+        xaxis_title='Tipo de Medalha',
+        yaxis_title='Número de Medalhas',
+        barmode='group',  # Gráfico de barras agrupadas
+        legend_title_text='País'  # Adiciona legenda para facilitar a distinção
+    )
+
+    
+    details = []
+    for country in selected_countries:
+        country_data = filtered_df[filtered_df['country_code'] == country]
+        details.append(html.Div([
+            html.H3(f"Detalhes do país: {country}"),
+            html.P(f"Sigla do País: {country_data['country_code'].values[0]}"),
+            html.P(f"Medalhas de Ouro: {country_data['gold'].values[0]}"),
+            html.P(f"Medalhas de Prata: {country_data['silver'].values[0]}"),
+            html.P(f"Medalhas de Bronze: {country_data['bronze'].values[0]}"),
+            html.P(f"Total de Medalhas: {country_data['total'].values[0]}"),
+            html.P(f"PIB: {country_data['gdp'].values[0]} (Ano: {country_data['gdp_year'].values[0]})"),
+            html.P(f"População: {country_data['population'].values[0]}")
+        ]))
 
     return fig, details
 
