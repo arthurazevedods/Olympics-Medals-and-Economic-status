@@ -41,7 +41,7 @@ def update_output(selected_countries):
     fig = go.Figure()
 
     # Cores específicas para cada país
-    colors = ['blue', 'red']  # Exemplo de cores: USA azul, CHN vermelho
+    colors = ['blue', 'red', 'green', 'purple','yellow', 'orange', 'pink']  # Exemplo de cores: USA azul, CHN vermelho
     # Adicionar barras para cada país e tipo de medalha com valores
     for i, country in enumerate(selected_countries):
         country_data = filtered_df[filtered_df['country_code'] == country]
@@ -51,7 +51,9 @@ def update_output(selected_countries):
             y=[country_data['gold'].values[0], country_data['silver'].values[0], country_data['bronze'].values[0]],
             name=country,
             marker_color=colors[i % len(colors)],  # Aplica as cores de maneira cíclica
-            text=[country_data['gold'].values[0], country_data['silver'].values[0], country_data['bronze'].values[0]],  # Adiciona os valores como texto nas barras
+            text=[f"{country}: {int(country_data['gold'].values[0])}", 
+                  f"{country}: {int(country_data['gold'].values[0])}", 
+                  f"{country}: {int(country_data['gold'].values[0])}"],  # Adiciona os valores como texto nas barras
             textposition='auto'  # Posiciona os textos automaticamente (dentro das barras)
         ))
 
